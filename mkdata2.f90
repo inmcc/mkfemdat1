@@ -1026,6 +1026,66 @@
 !
 
 !
+
+        iterst=1
+      OPEN(NF,FILE='DAT3D.TXT',STATUS='UNKNOWN')
+      WRITE(NF,*)'DATA in '
+      WRITE(NF,*)gratio
+      WRITE(NF,*)iterst
+      WRITE(NF,*)NX
+      WRITE(NF,*)NY
+      WRITE(NF,*)NZ
+      WRITE(NF,*)DENSMIN
+!      write(*,*)' NOE = ',NOE
+
+      NDX=(NX-NCX)/2
+      WRITE(NF,*)NOE
+      DO I=1,NOE
+!        DENS(I)=0.001
+         WRITE(NF,*)DENS(I)
+      ENDDO
+      WRITE(NF,*)(NX+1)*(NY+1)
+      NUM=0
+      DO j=1,NY+1
+      DO i=1,NX+1
+      NUM=NUM+1
+      IF(i.eq.int(cx+1).and.j.eq.int(cy+1))THEN
+!      IF(NUM.eq.1)THEN
+         WRITE(NF,'(2I10)')NODFAN(i,j,1),4
+        write(*,*)'ix,iy(in Fix 4 point:x,y,z_fixed) = ',i,j
+!        write(*,*)'       cx,cy=  ',cx,cy
+      ELSE
+         WRITE(NF,'(2I10)')NODFAN(i,j,1),3
+      ENDIF
+      ENDDO
+      ENDDO
+
+      WRITE(NF,*)NLD
+      WRITE(*,*)NLD
+        area=0.d0
+      DO I=1,NLD
+         WRITE(NF,*)NEL(I),earea(i),px(i),py(i),pz(i)
+!        pp=sqrt(px(i)*px(i)+py(i)*py(i)+pz(i)*pz(i))
+!        write(*,*)'pp=',pp
+!        write(*,*)'earea(i)*pp= ',earea(i)*pp
+        area=area+earea(i)
+      ENDDO
+        write(*,*)'area*2= ',area*2
+!        write(*,*)'globe(4*pai*rad**2) = ',4.d0*pai*rad*rad
+!      WRITE(NF,*)px,py,pz
+
+!
+	write(NF,'(I10)')nls
+!	write(*,*)'nls= ',nls
+	
+      DO i=1,nls
+	write(NF,*)numnls(i),densnls(i)
+!	write(*,*)'numnls(i),densnls(i)= ',numnls(i),densnls(i)
+      ENDDO
+
+      WRITE(NF,*)YOUNG,ANU
+
+      CLOSE(NF)
         write(*,*)'Normal Ending!'
         stop
         end program main
