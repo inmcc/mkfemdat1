@@ -1025,6 +1025,71 @@
         enddo!nn=1,ndlon
 !
 
+!***************mkround **********************
+        do k=1,nz
+        do j=1,ny
+        do i=1,nx
+        if(mshader(i,j,k).ne.0)then
+        dens(necfan(i,j,k))=dens(necfan(i,j,k))+shade(i,j,k)
+        endif
+        if(mshader(i,j,k).eq.1)then
+        do ic=1,3
+        pelem(NECFAN(i,j,k),ic)=pelem(NECFAN(i,j,k),ic)/nshade(i,j,k)
+        enddo! ic=1,3
+        endif
+        enddo
+        enddo
+        enddo
+
+        nls=0
+        do k=1,nz
+        do j=1,ny
+        do i=1,nx
+	if(dens(necfan(i,j,k)).gt.1.0d0)dens(necfan(i,j,k))=1.0d0
+        if(mshader(i,j,k).eq.10) then
+        nls=nls+1
+!        dens(necfan(i,j,k))=10.d0
+        endif
+!qqqq
+        if(mshader2(i,j,k).eq.1) then
+!        write(*,*)'mshader= ',mshader(i,j,k)
+!        write(*,*)'nshade= ',nshade(i,j,k)
+!        dens(necfan(i,j,k))=15.d0
+        endif
+!        if(mshader(i,j,k).eq.1) then
+!        dens(necfan(i,j,k))=10.d0
+!        endif
+!        if(dens(necfan(i,j,k)).gt.0.99d0) then
+!        dens(necfan(i,j,k))=1.d0
+!        endif
+        if(mshader(i,j,k).eq.1) then
+        NLD=NLD+1
+        NEL(NLD)=necfan(i,j,k)
+        earea(NLD)=shader(i,j,k)
+        px(NLD)=pxyz(NECFAN(i,j,k))*pelem(NECFAN(i,j,k),1)
+        py(NLD)=pxyz(NECFAN(i,j,k))*pelem(NECFAN(i,j,k),2)
+        pz(NLD)=pxyz(NECFAN(i,j,k))*pelem(NECFAN(i,j,k),3)
+!        write(*,*)'NLD,p(NLD)*earea(in main))= ',nld,sqrt(px(NLD)**2+py(NLD)**2+pz(NLD)**2)*earea(nld)
+        endif
+
+        enddo! i=1,nx
+        enddo! j=1,ny
+        enddo! k=1,nz
+!	nls:near loaded surface
+	allocate(densnls(nls),numnls(nls))
+	nnls=0
+        do k=1,nz
+        do j=1,ny
+        do i=1,nx
+        if(mshader(i,j,k).eq.10) then
+	nnls=nnls+1
+        numnls(nnls)=necfan(i,j,k)
+	densnls(nnls)=dens(necfan(i,j,k))
+        endif
+        enddo! i=1,nx
+        enddo! j=1,ny
+        enddo! k=1,nz
+!*******************************************************
 !
 
         iterst=1
