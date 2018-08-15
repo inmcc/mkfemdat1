@@ -1025,6 +1025,194 @@
         enddo!nn=1,ndlon
 !
 
+!************** mk trochanter maj. **************
+!	rhb=1.d0!Ratio of hts by sides:hts/(0.5*(sbl+sul))
+!	rub=1.d0!Ratio of sul by sbl:sul/sbl
+!	rdb12=0.d0!Ratio of length between lower end of sul and sbl by sbl:d12/sbl
+!	rcb1=0.5d0!Ratio of length between lower end of sbl and side_center(cc1) by sbl:dcs/sbl 
+!	rcb2=0.5d0!Ratio of length between left_side and hight_center(cc2) by sbl:cc2/sbl
+!	area=0.5*(sbl+sul)*hts=0.5*sbl*sbl*(1+rub)*rhb
+!	trpzl(4,3):lower trapezoid,trpzu(4,3):upper trapezoid,1=UpperLeft,2=LowerLeft,3=LowerRight,4=UpperRight
+!	as12:slope angle of left side
+!	as34:slope angle of right side
+!	ab41:slope angle of upper base
+!	ab23:slope angle of lower base
+	sarea=pai*rads*rads
+!	sarea=sarea*0.8d0
+	sbl=sqrt(sarea*4.d0/((1.d0+rub)*(1.d0+rub)*rhb))
+	write(*,*)'sbl= ',sbl
+	sul=sbl*rub
+	hts=0.5d0*(sbl+sul)*rhb
+	d12=sbl*rdb12
+	d34=sbl*rdb34
+	cc1=sbl*rcb1!trochanter load center;x coordinate
+	cc2=hts*rcb2!trochanter load center;y coordinate
+
+	trpzl2(1,1)=d12
+	trpzl2(2,1)=0.d0
+	trpzl2(3,1)=sbl
+	trpzl2(4,1)=d12+sul
+	trpzl2(1,2)=hts
+	trpzl2(2,2)=0.d0
+	trpzl2(3,2)=0.d0
+	trpzl2(4,2)=hts
+	ccz=0.d0
+	trpzl2(1,3)=ccz
+	trpzl2(2,3)=ccz
+	trpzl2(3,3)=ccz
+	trpzl2(4,3)=ccz
+
+	sleng=0.5d0*(trpzu(3,1)-trpzu(2,1)+trpzu(4,1)-trpzu(1,1))*(1.d0-ra12)
+
+	trpzu(1,2)=trpzu(1,2)
+	trpzu(2,2)=trpzu(2,2)
+	trpzu(3,2)=trpzu(3,2)
+	trpzu(4,2)=trpzu(4,2)
+
+	trpzu(1,3)=trpzl2(1,3)
+	trpzu(2,3)=trpzu(1,3)
+	trpzu(3,3)=trpzu(1,3)
+	trpzu(4,3)=trpzu(1,3)
+
+!	trpzl(1,1)=d12
+!	trpzl(2,1)=0.d0
+!	trpzl(3,1)=sbl
+!	trpzl(4,1)=d12+sul
+!	trpzl(1,2)=hts
+!	trpzl(2,2)=0.d0
+!	trpzl(3,2)=0.d0
+!	trpzl(4,2)=hts
+!	ccz=0.d0
+!	trpzl(1,3)=ccz
+!	trpzl(2,3)=ccz
+!	trpzl(3,3)=ccz
+!	trpzl(4,3)=ccz
+
+	sl12=sqrt(d12*d12+hts*hts)
+	if(sl12.le.0.d0)stop'sl12 is negative!'
+	csla12=hts/sl12
+	tsla12=d12/hts
+	if(abs(dcos(as12)).gt.0.d0)then
+	 psl(1)=httr/dtan(as12)!psl12
+	 th12=psl(1)/csla12
+	else
+	 psl(1)=0.d0
+	 th12=0.d0
+	endif
+
+	sl34=sqrt(d34*d34+hts*hts)
+	if(sl34.le.0.d0)stop'sl12 is negative!'
+	csla34=hts/sl34
+	tsla34=d34/hts
+	if(abs(dcos(as34)).gt.0.d0)then
+	 psl(3)=httr/dtan(as34)!psl34
+	 th34=psl(3)/csla34
+	else
+	 psl(3)=0.d0
+	 th34=0.d0
+	endif
+
+	if(abs(dcos(ab23)).gt.0.)then
+	 psl(2)=httr/dtan(ab23)!psl23
+	else
+	 psl(2)=0.d0
+	endif
+
+	if(abs(dcos(ab41)).gt.0.d0)then
+	 psl(4)=httr/dtan(ab41)!psl41
+	else
+	 psl(4)=0.d0
+	endif
+!q1
+
+!	trpzu(1,1)=trpzl(1,1)+th12+psl(4)*tsla12
+	trpzl(1,1)=trpzu(1,1)-th12-psl(4)*tsla12
+!	trpzu(2,1)=trpzl(2,1)+th12-psl(2)*tsla12
+	trpzl(2,1)=trpzu(2,1)-th12+psl(2)*tsla12
+!	trpzu(3,1)=trpzl(3,1)-th34+psl(2)*tsla34
+	trpzl(3,1)=trpzu(3,1)+th34-psl(2)*tsla34
+!	trpzu(4,1)=trpzl(4,1)-th34-psl(4)*tsla34
+	trpzl(4,1)=trpzu(4,1)+th34+psl(4)*tsla34
+
+!	trpzu(1,2)=trpzl(1,2)-psl(4)
+!	trpzu(2,2)=trpzl(2,2)+psl(2)
+!	trpzu(3,2)=trpzl(3,2)+psl(2)
+!	trpzu(4,2)=trpzl(4,2)-psl(4)
+	trpzl(1,2)=trpzu(1,2)+psl(4)
+	trpzl(2,2)=trpzu(2,2)-psl(2)
+	trpzl(3,2)=trpzu(3,2)-psl(2)
+	trpzl(4,2)=trpzu(4,2)+psl(4)
+!	ccz=rad
+!	trpzu(1,3)=httr
+!	trpzu(2,3)=httr
+!	trpzu(3,3)=httr
+!	trpzu(4,3)=httr
+	trpzl(1,3)=0.d0
+	trpzl(2,3)=0.d0
+	trpzl(3,3)=0.d0
+	trpzl(4,3)=0.d0
+
+!	sleng=0.5d0*(trpzu(3,1)-trpzu(2,1)+trpzu(4,1)-trpzu(1,1))*(1.d0-ra12)
+!	trpzl2(1,1)=trpzu(1,1)+sleng
+!	trpzl2(2,1)=trpzu(2,1)+sleng
+!	trpzl2(3,1)=trpzu(3,1)
+!	trpzl2(4,1)=trpzu(4,1)
+
+!	trpzl2(1,2)=trpzu(1,2)
+!	trpzl2(2,2)=trpzu(2,2)
+!	trpzl2(3,2)=trpzu(3,2)
+!	trpzl2(4,2)=trpzu(4,2)
+
+!	trpzl2(1,3)=trpzu(1,3)
+!	trpzl2(2,3)=trpzl2(1,3)
+!	trpzl2(3,3)=trpzl2(1,3)
+!	trpzl2(4,3)=trpzl2(1,3)
+
+	do nslide=1,4
+	  do i=1,3
+	vec(i)=trpzu(nslide,i)-trpzl(nslide,i)
+	  enddo!i=1,3
+	  do i=1,3
+	trpzu2(nslide,i)=trpzl2(nslide,i)+vec(i)*httr2/vec(3)
+	  enddo!i=1,3
+	enddo!nslide=1,4
+
+	do i=1,4
+	psl2(i)=psl(i)*httr2/httr
+	enddo! i=1,4
+
+	do j=1,4
+	do i=1,3
+!	write(*,*)'i,j= ',i,j
+!	write(*,*)'trpzl(j,i),trpzu(j,i)= ',trpzl(j,i),trpzu(j,i)
+	enddo!i=1,3
+!	write(*,*)' '
+	enddo!j=1,4
+
+	do j=1,4
+	do i=1,3
+!	write(*,*)'i,j= ',i,j
+!	write(*,*)'trpzl2(j,i),trpzu2(j,i)= ',trpzl2(j,i),trpzu2(j,i)
+	enddo!i=1,3
+!	write(*,*)' '
+	enddo!j=1,4
+
+!!!!	call mktr(trpzl,trpzu,psl,p1)
+	pp2=pp3
+!!!!	call mktr(trpzl2,trpzu2,psl2,p2)
+!	goto 1000
+!1000	continue
+
+
+!        write(*,*)'garea,garea*2= ',garea,garea*2
+!        write(*,*)'globe(4*pai*rad**2) = ',4.d0*pai*rad*rad
+
+        gosa=4.d0*pai*rad*rad-garea*2
+!        write(*,*)'gosa= ',gosa
+!        ase(NTSE)=parea
+
+!1000 continue
+
 !***************mkround **********************
         do k=1,nz
         do j=1,ny
