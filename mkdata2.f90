@@ -319,6 +319,7 @@
 !
 !−−−−計算結果出力
 !
+!      CALL OUTPUT
 !
       NEC(NUM)%NL(1)=NODFAN(i,j,k)
       NEC(NUM)%NL(2)=NODFAN(i+1,j,k)
@@ -1278,7 +1279,8 @@
         enddo! j=1,ny
         enddo! k=1,nz
 !*******************************************************
-!
+        call output
+
 
         iterst=1
       OPEN(NF,FILE='DAT3D.TXT',STATUS='UNKNOWN')
@@ -1389,6 +1391,93 @@
         endif
      end subroutine trans
 
+!-----------------------------------------------------------
+      SUBROUTINE OUTPUT
+!-----------------------------------------------------------
+        use com0
+        use com1
+        use com2
+        use com3
+
+      NX1=NX+1
+      NY1=NY+1
+      NZ1=NZ+1
+      DO k=1,NZ1
+      kk=k
+      if(kk.eq.NZ1)kk=NZ
+      DO j=1,NY1
+      jj=j
+      if(jj.eq.NY1)jj=NY
+      DO i=1,NX1
+      ii=i
+      if(ii.eq.NX1)ii=NX
+      den(NODFAN(i,j,k))=DENS(NECFAN(ii,jj,kk))
+      ENDDO
+      ENDDO
+      ENDDO
+
+!     Base Plate
+        do j=1,NY1
+        do i=1,NX1
+        den(NODFAN(i,j,1))=2.0d0
+!        den(NODFAN(i,j,1))=0.5d0
+        enddo! i=1,NX1
+        enddo! j=1,NY1
+!OUTPUT
+!
+        NDATA=8*NOE+NOE
+!
+!     call outdatb(NON,NOE,NDATA, CNODX, CNODY, CNODZ,NEC,S_SIG,dens)
+
+!
+	write(*,*)'gratio= ',gratio
+    write(*,*)'now in output'
+    OPEN(15,FILE='Initial.vtk')
+    WRITE(15,'(''# vtk DataFile Version 2.0'')')
+    WRITE(15,'(''Data'')')
+    WRITE(15,'(''ASCII'')')
+!    WRITE(15,'(''           '')')
+    WRITE(15,'(''DATASET UNSTRUCTURED_GRID'')')
+    WRITE(15,'(''POINTS '',i10,'' float'')') NON
+    DO i=1,NON
+       WRITE(15,'(3e15.7)') CNODX(I)*gratio,CNODY(I)*gratio,CNODZ(I)*gratio
+    ENDDO
+!
+        NDATA=8*NOE+NOE
+    WRITE(15,'(''CELLS '',2i10)') NOE, NDATA
+    DO i=1,NOE
+!      ne = ele(i)%non
+      WRITE(15,'(9i10)') 8,NEC(I)%NL(1)-1,NEC(I)%NL(2)-1,NEC(I)%NL(3)-1,NEC(I)%NL(4)-1,&
+      NEC(I)%NL(5)-1,NEC(I)%NL(6)-1,NEC(I)%NL(7)-1,NEC(I)%NL(8)-1
+    ENDDO
+!
+    WRITE(15,'(''CELL_TYPES '',i10)') NOE
+    DO i=1,NOE
+       WRITE(15,*) 12
+    ENDDO
+!
+!    WRITE(15,'(''POINT_DATA '',i10)') NON
+    WRITE(15,'(''POINT_DATA '',i10)') NON
+!
+! Velocity
+! density
+!----------
+!    WRITE(15,'(''VECTORS vectors float'')')
+    WRITE(15,'(''SCALARS DENSITY float'')')
+    WRITE(15,'(''LOOKUP_TABLE default'')')
+!    DO i=1,NON
+!       WRITE(15,'(3e15.7)') Sx(i), Sy(i), Sz(i)
+!    ENDDO
+    DO i=1,NON
+       WRITE(15,'(e15.7)') den(i)
+    ENDDO
+!
+!
+    CLOSE(15)
+!
+!
+      RETURN
+      END SUBROUTINE OUTPUT
 
                 function vnear(a)result(v)!seisuuka
                         real(8),intent(in)::a
